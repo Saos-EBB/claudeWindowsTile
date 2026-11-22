@@ -1,5 +1,10 @@
 # Build-Log
 
+## 2026-11-22 — chore(autostart): Tasten-Helfer beim Login
+**Was:** Verknüpfung `shell:startup\agent-tile Tasten.lnk` → `pythonw keys\agent-keys.pyw`. Die App selbst startet erst
+per Win+A, nicht beim Login.
+**Nicht gebaut:** kein Skript, das die Verknüpfung anlegt (einmalig, steht in der README).
+
 ## 2026-11-22 — feat(wm): Tile-Größe per Maus
 **Was:** Lücke zwischen zwei Tiles ziehen: Master/Stapel-Grenze → mfact, sonst Platz nur zwischen den zwei Nachbarn.
 Schwebende Fenster: Griff unten rechts. Tastatur (Win+Strg+Richtung) gab es schon.
