@@ -1,14 +1,14 @@
 # Fehler
 
 ## 2026-11-22 — Ständig neue Terminal-Fenster „[Fehler 2147942632 (0x800700e8) beim Start von `tasklist …']“
-**Symptom:** Mehrere Windows-Terminal-Fenster pro Sekunde, jeweils mit dieser Meldung.
-**Ursache:** Wahrscheinlich Claude Code selbst, das per `tasklist` die PID eines verlorenen Hintergrund-Tasks abfragte.
-Nicht abschließend bestätigt: Beim Messen war die Schleife schon vorbei. Sicher ist: Windows Terminal war (ohne eigene
-Einstellung) Standard-Terminal und übernimmt dann auch versteckt gestartete Konsolenprogramme → sichtbares Fenster,
-das an der schon geschlossenen Pipe scheitert.
-**Fix:** Standard-Terminal = Windows-Konsolenhost (`HKCU\Console\%%Startup`, `DelegationConsole` und
-`DelegationTerminal` = `{B23D10C0-E52E-411E-9D5B-C09FDF709C7D}`). Versteckte Konsolen bleiben dann versteckt, auch die
-von agent-tile (PowerShell, git aus dem Main-Prozess).
+**Symptom:** Mehrere Konsolenfenster pro Sekunde, jeweils mit dieser Meldung (bzw. leer, seit conhost Standard ist).
+**Ursache:** Nicht agent-tile und nicht Claude Code, sondern LocalAI: `C:\LocalAI\system\runtime.py` `process_info()`
+ruft `tasklist` per `subprocess.run` ohne `CREATE_NO_WINDOW` auf; `_wait_gone()` pollt das alle 0,2 s (z. B. bei
+`lai.cmd stop-model`, gestartet aus einer Claude-Session). Ein Python ohne eigene Konsole bekommt dann pro Aufruf ein
+neues, sichtbares Konsolenfenster. Nachgestellt mit pythonw: 15 Aufrufe → 15 Fenster.
+Erste Vermutung (Claude Code pollt eine verlorene PID) war falsch.
+**Fix:** In LocalAI `creationflags=CREATE_NO_WINDOW` für tasklist, taskkill und netstat → 0 Fenster.
+Die Umstellung des Standard-Terminals auf conhost war dafür nicht nötig (schadet aber nicht).
 
 ## 2026-11-22 — App bleibt nach dem Schließen fensterlos hängen, „Uncaught JS error“
 **Symptom:** Fenster zu (X, WM_CLOSE), electron.exe läuft weiter. Win+A startet danach nichts mehr, weil die
