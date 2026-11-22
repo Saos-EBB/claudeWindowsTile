@@ -1,5 +1,9 @@
 # Build-Log
 
+## 2026-11-22 — feat(main): Pipe-Name per AGENT_TILE_PIPE
+**Was:** Eine zweite Instanz (für die README-Screenshots) braucht einen eigenen ptyhost, sonst hängt sie sich an die echten Sessions.
+**Nicht gebaut:** kein Demo-Modus in der App; die Demo-Daten kommen von außen.
+
 ## 2026-11-22 — docs(readme): Maus-Resize, Autostart, Logs
 **Was:** README nennt jetzt Autostart, Größe per Maus und wo Logs und Fehlerdoku liegen.
 **Nicht gebaut:** keine Screenshots, keine englische Fassung.

@@ -18,7 +18,7 @@ const pty = require("node-pty");
 const { Terminal } = require("@xterm/headless");
 const { SerializeAddon } = require("@xterm/addon-serialize");
 
-const PIPE = require("./pipe.js");
+const PIPE = process.argv[2] || require("./pipe.js"); // main.js gibt den Namen mit
 const LOG = path.join(os.homedir(), ".cache", "agent-tile", "ptyhost.log");
 const SCROLLBACK = 10000;
 

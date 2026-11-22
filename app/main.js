@@ -157,7 +157,7 @@ function onHostMessage(msg) {
 function ensureHost() {
   hostReady ??= connectHost()
     .catch(async () => {
-      await launchDetached(findNode(), [path.join(__dirname, "ptyhost.js")], __dirname);
+      await launchDetached(findNode(), [path.join(__dirname, "ptyhost.js"), PIPE], __dirname);
       for (let i = 0; i < 50; i++) {
         await new Promise((r) => setTimeout(r, 100));
         try {
