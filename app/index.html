@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>agent-tile</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
+<link rel="stylesheet" href="node_modules/@xterm/xterm/css/xterm.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <span class="pill">agents</span>
+  <div class="topbar-status">
+    <span class="status-item"><span class="dot dot-done pulse"></span><span id="count-active">0 aktiv</span></span>
+    <span class="status-item"><span class="dot dot-waiting"></span><span id="count-waiting">0 wartet</span></span>
+    <span id="limits" class="limits" title="Nutzungslimit des Kontos, Stand der letzten Statusline" hidden></span>
+    <span>Win+A</span>
+    <span id="clock"></span>
+    <button type="button" id="btn-quit" class="quit" title="Beenden (Win+Shift+F4)" aria-label="agent-tile beenden">⏻</button>
+  </div>
+</header>
+
+<!-- Fenster (Web-Chat, Terminals) und Panel positioniert wm.js, als Master-Layout wie in Hyprland -->
+<div id="tiles">
+  <section id="web-window" class="web" aria-label="Web-Chat">
+    <div class="section-head">
+      <span class="section-name">claude.ai</span>
+      <button type="button" id="btn-web-toggle" class="pane-tool" aria-label="Web-Chat einklappen" title="Einklappen">‹</button>
+    </div>
+    <webview id="web" partition="persist:claude"></webview>
+  </section>
+
+  <p id="no-panes" class="empty placeholder">Keine Session offen — „+ Neue Session“ oder eine aktive Session anklicken.</p>
+
+  <section id="panel" class="panel" aria-label="Agent-Status">
+    <div class="panel-head">
+      <span class="panel-title">Agents</span>
+      <div class="panel-buttons">
+        <button type="button" id="btn-teleport">Cloud · teleport</button>
+        <button type="button" id="btn-web">Web-Chat</button>
+        <button type="button" id="btn-new" class="primary">+ Neue Session</button>
+      </div>
+    </div>
+    <div class="panel-cols">
+      <div class="panel-col">
+        <span class="label">Aktiv</span>
+        <div id="active" class="list"></div>
+      </div>
+      <div class="panel-col">
+        <span class="label">Gepinnt</span>
+        <div id="pinned" class="list list-pinned"></div>
+        <span class="label">Zuletzt</span>
+        <div id="recent" class="list"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="node_modules/@xterm/xterm/lib/xterm.js"></script>
+<script src="node_modules/@xterm/addon-fit/lib/addon-fit.js"></script>
+<script src="wm.js"></script>
+<script src="renderer.js"></script>
+</body>
+</html>

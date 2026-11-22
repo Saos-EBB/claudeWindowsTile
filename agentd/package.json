@@ -1,0 +1,9 @@
+{
+  "name": "agentd",
+  "private": true,
+  "type": "module",
+  "description": "Scannt Claude-Code-Sessions und schreibt ~/.cache/agent-tile/state.json",
+  "scripts": {
+    "start": "node agentd.ts"
+  }
+}

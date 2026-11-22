@@ -1,0 +1,100 @@
+/* claude.ai im agent-tile-Look. Wird per webview.insertCSS geladen, nur CSS.
+   claude.ai setzt Farben auf <html data-theme="claude" data-mode="dark"> mit !important in Cascade-Layern;
+   bei !important gewinnt der früheste Layer → alles in @layer properties.
+   Tiefere Elemente deklarieren Tokens neu → Basis-Tokens auf html *, Seitenfläche nur auf <html>.
+   Hintergründe: docs/checks.md, Nachtrag Step 6. */
+@layer properties {
+  html:root:root[data-theme][data-mode] {
+    /* Seitenfläche #0b0e14 */
+    --cds-page-bg: #0b0e14 !important;
+    --background-color-page: #0b0e14 !important;
+    --df-bg-page: #0b0e14 !important;
+    --df-bg-page-hsl: from #0b0e14 h s l !important;
+    --cds-scroll-fade-strip-color: #0b0e14 !important;
+  }
+
+  html:root:root[data-theme][data-mode], html:root:root[data-theme][data-mode] * {
+    /* Flächen: Panels #12151d, Karten #1a1f2a */
+    --cds-surface-0: #07090d !important;
+    --cds-surface-1: #0b0e14 !important;
+    --cds-surface-2: #12151d !important;
+    --cds-surface-3: #12151d !important;
+    --cds-surface-panel: #12151d !important;
+    --cds-surface-popover: #1a1f2a !important;
+    --cds-tooltip-bg: #1a1f2a !important;
+    --cds-fizzy-lake-color-sidebar: #12151d !important;
+    --cds-fizzy-lake-color-card-hover: #1a1f2a !important;
+    --df-sidebar-bg: #0e1118 !important;
+    --df-surface-primary: 222 25% 10% !important;
+
+    --bg-000: 221 24% 13% !important;
+    --bg-100: 220 29% 6% !important;
+    --bg-200: 222 25% 8% !important;
+    --bg-300: 224 30% 5% !important;
+    --bg-400: 224 30% 4% !important;
+    --bg-500: 224 30% 4% !important;
+
+    /* Text: #e6e9ef, #aab2c5, #8b93a7 */
+    --cds-text-primary: #e6e9ef !important;
+    --cds-text-secondary: #aab2c5 !important;
+    --cds-text-stays-secondary: #aab2c5 !important;
+    --cds-text-muted: #8b93a7 !important;
+    --cds-fizzy-lake-color-secondary: #aab2c5 !important;
+    --cds-fizzy-lake-color-tertiary: #8b93a7 !important;
+    --cds-fizzy-lake-color-placeholder: #8b93a7 !important;
+    --cds-fizzy-lake-color-control-ink: #e6e9ef !important;
+    --df-root-text-secondary: #aab2c5 !important;
+    --df-root-text-muted: #8b93a7 !important;
+
+    --text-000: 220 22% 95% !important;
+    --text-100: 220 22% 92% !important;
+    --text-200: 222 18% 72% !important;
+    --text-300: 222 18% 72% !important;
+    --text-400: 223 13% 60% !important;
+    --text-500: 223 13% 60% !important;
+
+    /* Linien: Weiß mit 6–10 % wie im Mockup */
+    --cds-border: #ffffff0f !important;
+    --cds-border-line: #ffffff14 !important;
+    --cds-fizzy-lake-color-composer-ring: #ffffff1a !important;
+
+    /* Akzent #8fd3ff, Text auf Akzent #0b0e14, User-Bubble im Akzent-Ton */
+    --cds-fill-accent: #8fd3ff !important;
+    --cds-fill-accent-hover: #b5e2ff !important;
+    --cds-role-accent-fill: #8fd3ff !important;
+    --cds-role-accent-fill-hover: #b5e2ff !important;
+    --cds-text-accent: #8fd3ff !important;
+    --cds-on-accent: #0b0e14 !important;
+    --cds-role-accent-on: #0b0e14 !important;
+    --cds-bg-accent: #8fd3ff1f !important;
+    --cds-border-accent: #8fd3ff38 !important;
+    --cds-bg-user-message: #8fd3ff1f !important;
+    --cds-bg-user-message-personal: #8fd3ff1f !important;
+    --cds-text-user-message-personal: #8fd3ff !important;
+
+    --accent-000: 203 100% 86% !important;
+    --accent-100: 203 100% 78% !important;
+    --accent-200: 203 100% 78% !important;
+    --accent-brand: 203 100% 78% !important;
+    --oncolor-100: 220 29% 6% !important;
+
+    /* Schrift: Inter, Code in JetBrains Mono */
+    --font-anthropic-sans: Inter, system-ui, sans-serif !important;
+    --font-anthropic-serif: Inter, system-ui, sans-serif !important;
+    --font-serif: Inter, system-ui, sans-serif !important;
+    --font-ui-serif: Inter, system-ui, sans-serif !important;
+    --cds-font-sans: Inter, system-ui, sans-serif !important;
+  }
+
+  body, button, input, textarea, select, [contenteditable] {
+    font-family: Inter, system-ui, sans-serif !important;
+  }
+  code, pre, kbd, samp, [class*="font-mono"] {
+    font-family: "JetBrains Mono", monospace !important;
+  }
+
+  /* Radien wie im Mockup: Karten 14, Eingaben 12, Buttons 8 */
+  [class*="rounded-2xl"] { border-radius: 14px !important; }
+  [class*="rounded-xl"]  { border-radius: 12px !important; }
+  [class*="rounded-lg"]  { border-radius: 8px !important; }
+}
