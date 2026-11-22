@@ -31,9 +31,24 @@ app.setName("agent-tile");
 app.setAppUserModelId("agent-tile"); // ohne AUMID zeigt Windows keine Meldungen
 
 if (!app.requestSingleInstanceLock()) app.exit(0);
+
+// Unerwartete Fehler ins Log statt in Electrons modalen Fehlerdialog: der blockiert, und die App bliebe
+// fensterlos mit der Single-Instance-Sperre hängen
+process.on("uncaughtException", (err) => {
+  try {
+    fs.mkdirSync(CACHE, { recursive: true });
+    fs.appendFileSync(path.join(CACHE, "main.log"), `${new Date().toISOString()} ${err.stack || err}\n`);
+  } catch {}
+});
 app.on("second-instance", () => showTile());
 
 let win;
+
+// Nach dem Schließen ist win zerstört, aber Pipe und Watcher melden sich noch (z. B. das Ende der ptyhost-Verbindung
+// beim Beenden). send() auf ein zerstörtes Fenster wirft "Object has been destroyed" — der Fehlerdialog hielt die App offen.
+function toRenderer(channel, ...args) {
+  if (win && !win.isDestroyed() && !win.webContents.isDestroyed()) win.webContents.send(channel, ...args);
+}
 
 function createWindow() {
   win = new BrowserWindow({
@@ -53,7 +68,7 @@ function createWindow() {
 }
 
 function showTile() {
-  if (!win) return;
+  if (!win || win.isDestroyed()) return;
   if (win.isMinimized()) win.restore();
   win.show();
   win.focus();
@@ -118,7 +133,7 @@ function useHost(socket) {
     host = null;
     hostReady = null;
     // Ohne Host gibt es die Sessions nicht mehr (Absturz oder „Alles beenden“)
-    for (const paneId of attached) win?.webContents.send("pty:exit", paneId);
+    for (const paneId of attached) toRenderer("pty:exit", paneId);
     attached.clear();
   };
   socket.on("close", lost);
@@ -126,10 +141,10 @@ function useHost(socket) {
 }
 
 function onHostMessage(msg) {
-  if (msg.ev === "data") return win?.webContents.send("pty:data", msg.paneId, msg.d);
+  if (msg.ev === "data") return toRenderer("pty:data", msg.paneId, msg.d);
   if (msg.ev === "exit") {
     attached.delete(msg.paneId);
-    return win?.webContents.send("pty:exit", msg.paneId);
+    return toRenderer("pty:exit", msg.paneId);
   }
   const waiting = host?.pending.get(msg.re);
   if (!waiting) return;
@@ -216,7 +231,7 @@ ipcMain.handle("pty:open", async (_event, { paneId, cwd, command, args = [], ses
   const { snapshot, pid } = await request("attach", { paneId });
   attached.add(paneId);
   // Bildschirm samt Verlauf zuerst, danach laufen die Daten der Session über dieselbe Pipe hinterher
-  if (snapshot) win?.webContents.send("pty:data", paneId, snapshot);
+  if (snapshot) toRenderer("pty:data", paneId, snapshot);
   return pid;
 });
 
@@ -270,12 +285,15 @@ ipcMain.handle("data:initial", () => ({
   usage: readUsage(),
 }));
 
+// Offene fs.watch-Handles halten Electron unter Windows nach "quit" am Leben → beim Beenden schließen
+const watchers = [];
+
 // Verzeichnis statt Datei beobachten: agentd ersetzt state.json per rename
 function watchFile(file, onChange) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.watch(path.dirname(file), (_type, name) => {
+  watchers.push(fs.watch(path.dirname(file), (_type, name) => {
     if (name === path.basename(file)) onChange();
-  });
+  }));
 }
 
 // Angehängte Zeilen einer Datei mitlesen (Hook-Events, Fensterbefehle vom Tasten-Helfer).
@@ -305,14 +323,14 @@ function tail(file, onLine) {
 }
 
 function startWatching() {
-  watchFile(FILES.state, () => win?.webContents.send("data:state", readJson(FILES.state, { sessions: [] })));
-  watchFile(FILES.pins, () => win?.webContents.send("data:pins", readJson(FILES.pins, [])));
+  watchFile(FILES.state, () => toRenderer("data:state", readJson(FILES.state, { sessions: [] })));
+  watchFile(FILES.pins, () => toRenderer("data:pins", readJson(FILES.pins, [])));
   fs.mkdirSync(FILES.usage, { recursive: true });
-  fs.watch(FILES.usage, (_type, name) => {
+  watchers.push(fs.watch(FILES.usage, (_type, name) => {
     if (!name?.endsWith(".json")) return;
     const entry = readJson(path.join(FILES.usage, name), null);
-    if (entry) win?.webContents.send("data:usage", entry);
-  });
+    if (entry) toRenderer("data:usage", entry);
+  }));
   tail(FILES.events, (line) => {
     let event;
     try {
@@ -320,11 +338,11 @@ function startWatching() {
     } catch {
       return;
     }
-    win?.webContents.send("data:event", event);
+    toRenderer("data:event", event);
     notify(event);
   });
   // Eine Zeile pro Taste, z. B. "focus left" (keys/agent-keys.pyw)
-  tail(FILES.wm, (line) => win?.webContents.send("wm", line));
+  tail(FILES.wm, (line) => toRenderer("wm", line));
 }
 
 // --- Benachrichtigungen ----------------------------------------------------
@@ -333,7 +351,7 @@ function startWatching() {
 // idle_prompt kommt ~60 s nach "fertig" und sagt nichts Neues → keine zweite Meldung.
 
 function notify(event) {
-  if (win?.isFocused() || (event.type !== "done" && event.type !== "waiting") || event.kind === "idle_prompt") return;
+  if ((win && !win.isDestroyed() && win.isFocused()) || (event.type !== "done" && event.type !== "waiting") || event.kind === "idle_prompt") return;
 
   const session = readJson(FILES.state, { sessions: [] }).sessions.find((s) => s.id === event.session);
   const title = path.basename(event.cwd || "") || "Claude";
@@ -342,7 +360,7 @@ function notify(event) {
   const note = new Notification({ title, body });
   note.on("click", () => {
     showTile();
-    win?.webContents.send("focus-session", event.pane, event.session);
+    toRenderer("focus-session", event.pane, event.session);
   });
   note.show();
 
@@ -571,4 +589,10 @@ app.whenReady().then(() => {
 app.on("window-all-closed", () => app.quit());
 
 // Beim Beenden nur von der Pipe lösen — die Sessions laufen im ptyhost weiter.
-app.on("will-quit", () => host?.socket.end());
+app.on("will-quit", () => {
+  for (const watcher of watchers) watcher.close();
+  host?.socket.end();
+});
+// Sicherheitsnetz: Ein Rest, der doch noch hängt, darf keinen fensterlosen Prozess hinterlassen —
+// der hielte die Single-Instance-Sperre, und Win+A täte nichts mehr.
+app.on("quit", () => setTimeout(() => process.exit(0), 1500));
