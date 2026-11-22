@@ -50,8 +50,9 @@ Voraussetzungen: Node ≥ 22.18 im PATH (agentd und ptyhost), Git, Python (nur f
 
 ## Starten, neu starten, beenden
 
-- **`agent-tile.cmd`** startet den Tasten-Helfer und das Fenster. Beides läuft nur einmal.
-  Für den Autostart eine Verknüpfung darauf in `shell:startup` legen. Dann reicht Win+A.
+- **Autostart**: Eine Verknüpfung in `shell:startup` startet beim Login nur den Tasten-Helfer
+  (`pythonw.exe "…\keys\agent-keys.pyw"`). Die App kommt erst mit Win+A.
+- **`agent-tile.cmd`** startet beides von Hand (Tasten-Helfer und Fenster). Beides läuft nur einmal.
 - **Win+A**: startet die App, falls sie nicht läuft, holt sie sonst nach vorn bzw. minimiert sie, wenn sie vorne ist.
 - Die App startet **agentd** und den **ptyhost** selbst (über WMI, losgelöst von der App).
 - **Win+Shift+F4** oder **⏻** fragt nach:
@@ -76,6 +77,14 @@ führt ihn in ihrem Master-Layout aus. Windows sieht diese Tasten dann nicht. Oh
 | Win+F / Win+Strg+F | schweben (Kopfzeile ziehen) / Vollbild |
 | Win+F4 | Terminal ausblenden bzw. Web-Chat einklappen |
 | Win+Shift+F4 | agent-tile beenden (siehe oben) |
+
+**Per Maus**:
+
+- Die **Lücke zwischen zwei Tiles** ziehen. Zwischen Master und Stapel verschiebt sie die Master-Breite, zwischen
+  zwei Fenstern derselben Spalte tauscht sie nur zwischen diesen beiden Platz. Über der Lücke wird der Mauszeiger
+  zum Doppelpfeil.
+- **Schwebende Fenster**: an der Kopfzeile verschieben, am Griff unten rechts in der Größe ändern.
+- Gilt im Master-Layout, nicht in Monocle. Die Einstellungen bleiben über Neustarts erhalten.
 
 - **Win+L** sperrt immer den Rechner (das lässt Windows keinen Hook abfangen). Fokus rechts geht deshalb nur per →.
 - Nach einer geschluckten Kombination schickt der Helfer eine unbelegte Taste (VK 0xE8), damit beim Loslassen
@@ -105,6 +114,9 @@ Unverändert gegenüber Linux:
 - **Meldungen** kommen nur, wenn agent-tile nicht den Fokus hat. Ein Klick holt die Pane der Session nach vorn.
 
 ## Technik
+
+Verlauf und Gründe: [`docs/build-log.md`](docs/build-log.md), bekannte Fehler und ihre Ursachen:
+[`docs/errors.md`](docs/errors.md). Logs liegen in `~/.cache/agent-tile/` (`main.log`, `ptyhost.log`, `keys.log`).
 
 ### ptyhost (`app/ptyhost.js`)
 

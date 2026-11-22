@@ -1,5 +1,9 @@
 # Build-Log
 
+## 2026-11-22 — docs(readme): Maus-Resize, Autostart, Logs
+**Was:** README nennt jetzt Autostart, Größe per Maus und wo Logs und Fehlerdoku liegen.
+**Nicht gebaut:** keine Screenshots, keine englische Fassung.
+
 ## 2026-11-22 — chore(autostart): Tasten-Helfer beim Login
 **Was:** Verknüpfung `shell:startup\agent-tile Tasten.lnk` → `pythonw keys\agent-keys.pyw`. Die App selbst startet erst
 per Win+A, nicht beim Login.
