@@ -107,6 +107,23 @@ button { font-family: var(--sans); }
 .win.floating { box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55); }
 .win.floating .section-head, .win.floating .pane-head { cursor: move; }
 
+/* Größe per Maus (wm.js): beim Ziehen keine Animation, und Webview/Terminals schlucken die Maus nicht */
+#tiles.wm-resizing .win, #tiles.wm-resizing .placeholder { transition: none; pointer-events: none; }
+#tiles.wm-resizing { user-select: none; }
+.wm-corner { display: none; }
+.win.floating > .wm-corner {
+  display: block;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+  z-index: 5;
+  background: linear-gradient(135deg, transparent 50%, rgba(205, 87, 255, 0.55) 50%);
+  border-bottom-right-radius: inherit;
+}
+
 .web {
   display: flex;
   flex-direction: column;

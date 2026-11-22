@@ -26,6 +26,7 @@ const wm = {
       Object.assign(this.settings, JSON.parse(localStorage.getItem("wm") || "{}"));
     } catch {}
     new ResizeObserver(() => this.layout()).observe(root);
+    this.enableGapResize();
   },
 
   save() {
@@ -44,6 +45,7 @@ const wm = {
     if (!el.classList.contains("win")) {
       el.classList.add("win");
       el.addEventListener("mousedown", () => this.setFocused(id));
+      this.enableCornerResize(id, el);
     }
     this.layout();
   },
@@ -340,6 +342,116 @@ const wm = {
   },
 
   onClose: () => {}, // Renderer: Terminal ausblenden bzw. Web-Chat einklappen
+
+  // --- Größe per Maus ----------------------------------------------------------
+  // Die Lücke zwischen zwei Fenstern ziehen: zwischen Master und Stapel verschiebt sie mfact,
+  // zwischen zwei Fenstern derselben Spalte/Zeile tauscht sie Platz nur zwischen diesen beiden.
+
+  // Fenster links/oberhalb (a) und rechts/unterhalb (b) der Lücke unter dem Mauszeiger, sonst null
+  gapAt(x, y) {
+    const tol = WM_GAP + 3;
+    const boxes = this.tiled()
+      .filter((id) => !this.windows.get(id).el.hidden)
+      .map((id) => ({ id, r: this.rect(id) }));
+    const find = (vertical) => {
+      const pos = vertical ? x : y;
+      const cross = vertical ? y : x;
+      const inCross = (r) => (vertical ? r.top <= cross && cross <= r.bottom : r.left <= cross && cross <= r.right);
+      const a = boxes.find(({ r }) => inCross(r) && (vertical ? r.right : r.bottom) <= pos && pos - (vertical ? r.right : r.bottom) < tol);
+      const b = boxes.find(({ r }) => inCross(r) && (vertical ? r.left : r.top) >= pos && (vertical ? r.left : r.top) - pos < tol);
+      return a && b ? { a: a.id, b: b.id, vertical } : null;
+    };
+    return find(true) ?? find(false);
+  },
+
+  enableGapResize() {
+    const root = this.root;
+    root.addEventListener("mousemove", (e) => {
+      if (e.target !== root || root.classList.contains("wm-resizing")) return;
+      const gap = this.settings.mode === "master" && this.gapAt(e.clientX, e.clientY);
+      root.style.cursor = gap ? (gap.vertical ? "col-resize" : "row-resize") : "";
+    });
+    root.addEventListener("mousedown", (down) => {
+      if (down.target !== root || down.button !== 0 || this.settings.mode !== "master") return;
+      const gap = this.gapAt(down.clientX, down.clientY);
+      if (!gap) return;
+      down.preventDefault();
+      const s = this.settings;
+      const layoutVertical = s.orientation === "left" || s.orientation === "right";
+      // Lücke quer zur Master-Achse = Grenze Master/Stapel, sonst zwei Nachbarn in derselben Spalte
+      const boundary = gap.vertical === layoutVertical;
+      const extent = layoutVertical ? this.root.clientWidth : this.root.clientHeight;
+      const start = { pos: gap.vertical ? down.clientX : down.clientY, mfact: s.mfact };
+      const a = this.windows.get(gap.a);
+      const b = this.windows.get(gap.b);
+      const sizeOf = (id) => (gap.vertical ? this.rect(id).width : this.rect(id).height);
+      const startA = { size: sizeOf(gap.a), weight: a.weight, fixed: a.fixed };
+      const startB = { size: sizeOf(gap.b), weight: b.weight, fixed: b.fixed };
+      const masterFirst = s.orientation === "left" || s.orientation === "top";
+
+      root.classList.add("wm-resizing");
+      root.style.cursor = gap.vertical ? "col-resize" : "row-resize";
+      let frame = 0;
+      const move = (e) => {
+        const delta = (gap.vertical ? e.clientX : e.clientY) - start.pos;
+        if (boundary) {
+          s.mfact = Math.min(0.9, Math.max(0.1, start.mfact + ((masterFirst ? 1 : -1) * delta) / extent));
+        } else {
+          const d = Math.max(WM_MIN - startA.size, Math.min(startB.size - WM_MIN, delta));
+          if (startA.fixed) a.fixed = startA.size + d;
+          if (startB.fixed) b.fixed = startB.size - d;
+          if (!startA.fixed && !startB.fixed) {
+            // Gewichte der beiden so verteilen, dass ihre Summe (und damit alle anderen) gleich bleibt
+            const total = startA.weight + startB.weight;
+            a.weight = (total * (startA.size + d)) / (startA.size + startB.size);
+            b.weight = total - a.weight;
+          }
+        }
+        if (!frame) frame = requestAnimationFrame(() => {
+          frame = 0;
+          this.layout();
+        });
+      };
+      const up = () => {
+        window.removeEventListener("mousemove", move);
+        window.removeEventListener("mouseup", up);
+        root.classList.remove("wm-resizing");
+        root.style.cursor = "";
+        this.save();
+        this.layout();
+      };
+      window.addEventListener("mousemove", move);
+      window.addEventListener("mouseup", up);
+    });
+  },
+
+  // Schwebende Fenster: unten rechts an der Ecke ziehen
+  enableCornerResize(id, el) {
+    const corner = document.createElement("div");
+    corner.className = "wm-corner";
+    el.append(corner);
+    corner.addEventListener("mousedown", (down) => {
+      const w = this.windows.get(id);
+      if (!w?.floating || down.button !== 0) return;
+      down.preventDefault();
+      down.stopPropagation();
+      const start = { w: w.floating.w, h: w.floating.h, mx: down.clientX, my: down.clientY };
+      this.root.classList.add("wm-resizing");
+      const move = (e) => {
+        w.floating.w = Math.max(WM_MIN * 2, start.w + e.clientX - start.mx);
+        w.floating.h = Math.max(WM_MIN, start.h + e.clientY - start.my);
+        this.place(w.el, w.floating, 20);
+      };
+      const up = () => {
+        window.removeEventListener("mousemove", move);
+        window.removeEventListener("mouseup", up);
+        this.root.classList.remove("wm-resizing");
+        this.onLayout();
+      };
+      window.addEventListener("mousemove", move);
+      window.addEventListener("mouseup", up);
+    });
+  },
 
   // Schwebende Fenster an der Kopfzeile ziehen
   enableDrag(id, handle) {

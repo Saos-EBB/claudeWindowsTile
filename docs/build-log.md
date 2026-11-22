@@ -1,5 +1,10 @@
 # Build-Log
 
+## 2026-11-22 — feat(wm): Tile-Größe per Maus
+**Was:** Lücke zwischen zwei Tiles ziehen: Master/Stapel-Grenze → mfact, sonst Platz nur zwischen den zwei Nachbarn.
+Schwebende Fenster: Griff unten rechts. Tastatur (Win+Strg+Richtung) gab es schon.
+**Nicht gebaut:** kein Win+Maus-Ziehen wie in Hyprland (bräuchte Maus-Hook), keine Ränder an gekachelten Tiles.
+
 ## 2026-11-22 — fix(main): sauber beenden ohne Fehlerdialog
 **Was:** Nach dem Schließen blieb die App mit Fehlerdialog hängen und blockierte Win+A (siehe errors.md).
 **Nicht gebaut:** kein Crash-Reporter, kein Neustart — Fehler landen nur in `main.log`.
