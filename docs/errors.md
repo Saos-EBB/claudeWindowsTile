@@ -8,7 +8,8 @@ ruft `tasklist` per `subprocess.run` ohne `CREATE_NO_WINDOW` auf; `_wait_gone()`
 neues, sichtbares Konsolenfenster. Nachgestellt mit pythonw: 15 Aufrufe → 15 Fenster.
 Erste Vermutung (Claude Code pollt eine verlorene PID) war falsch.
 **Fix:** In LocalAI `creationflags=CREATE_NO_WINDOW` für tasklist, taskkill und netstat → 0 Fenster.
-Die Umstellung des Standard-Terminals auf conhost war dafür nicht nötig (schadet aber nicht).
+Die zwischenzeitliche Umstellung des Standard-Terminals auf conhost war dafür nicht nötig und ist wieder rückgängig
+(Windows Terminal, `HKCU\Console\%%Startup` gelöscht).
 
 ## 2026-11-22 — App bleibt nach dem Schließen fensterlos hängen, „Uncaught JS error“
 **Symptom:** Fenster zu (X, WM_CLOSE), electron.exe läuft weiter. Win+A startet danach nichts mehr, weil die
