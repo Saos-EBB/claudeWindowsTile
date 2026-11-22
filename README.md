@@ -3,6 +3,16 @@
 Windows-Port von `agent-tile` aus `hyperland-tiles-`. Ein einziges Fenster: links claude.ai als Webview, rechts die
 Claude-Code-Terminals gestapelt, darunter das Agent-Panel. **Win+A** holt es nach vorn.
 
+![agent-tile bei 1920×1080](docs/screens/agent-tile-1920x1080.png)
+
+| 1440×900 | 1280×800 |
+|---|---|
+| ![agent-tile bei 1440×900](docs/screens/agent-tile-1440x900.png) | ![agent-tile bei 1280×800](docs/screens/agent-tile-1280x800.png) |
+
+Die Screenshots zeigen Demo-Daten aus einer zweiten Instanz mit eigenem ptyhost (`AGENT_TILE_PIPE`): eine Session ist
+fertig (grün), eine wartet auf eine Erlaubnis (orange, mit Ja / Nein im Panel). Im echten Fenster scheint statt des
+dunklen Hintergrunds das Windows-Acryl durch.
+
 Was es kann (wie unter Linux):
 
 - Sessions laufen im **ptyhost** und überleben Neustart oder Absturz der App.
@@ -120,7 +130,8 @@ Verlauf und Gründe: [`docs/build-log.md`](docs/build-log.md), bekannte Fehler u
 
 ### ptyhost (`app/ptyhost.js`)
 
-- Ein Node-Prozess pro Benutzer, Pipe `\\.\pipe\agent-tile-<user>`, NDJSON in beide Richtungen
+- Ein Node-Prozess pro Benutzer, Pipe `\\.\pipe\agent-tile-<user>` (mit `AGENT_TILE_PIPE=<name>` eine eigene, z. B.
+  für eine zweite Instanz), NDJSON in beide Richtungen
   (`list`, `new`, `attach`, `write`, `resize`, `tag`, `kill`, `shutdown`, Events `data`/`exit`).
 - Jede Session hat ein **headless xterm** (`@xterm/headless`) mitlaufen. Beim Anhängen bekommt die App den
   serialisierten Bildschirm samt Verlauf (`@xterm/addon-serialize`). Danach laufen die Daten über dieselbe Pipe.

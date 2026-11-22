@@ -1,5 +1,10 @@
 # Build-Log
 
+## 2026-11-22 — docs(readme): Screenshots in 1920×1080, 1440×900, 1280×800
+**Was:** Demo-Instanz (eigenes Home, Profil und Pipe) mit ausgedachten Sessions; Bilder per CDP mit emuliertem Viewport,
+die Webview extra aufgenommen und eingesetzt, weil Chromium Gast-Webviews im Seitenbild auslässt.
+**Nicht gebaut:** kein Screenshot-Skript im Repo (einmalig), kein GIF.
+
 ## 2026-11-22 — feat(main): Pipe-Name per AGENT_TILE_PIPE
 **Was:** Eine zweite Instanz (für die README-Screenshots) braucht einen eigenen ptyhost, sonst hängt sie sich an die echten Sessions.
 **Nicht gebaut:** kein Demo-Modus in der App; die Demo-Daten kommen von außen.
